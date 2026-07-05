@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and release (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm test
+
+      - name: Package release asset
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          STAGE="termlink-$TAG"
+          mkdir -p "$STAGE/dist" "$STAGE/node_modules"
+          cp dist/index.js "$STAGE/dist/index.js"
+          cp package.json "$STAGE/package.json"
+          cp -r node_modules/node-pty "$STAGE/node_modules/node-pty"
+          cp scripts/install.sh "$STAGE/install.sh"
+          chmod +x "$STAGE/install.sh"
+          cp scripts/install.cmd "$STAGE/install.cmd"
+          # fix-node-pty-permissions.js only fixes the current runner's own
+          # platform (linux-x64); the bundle also carries macOS's prebuilds,
+          # so every platform's spawn-helper needs the executable bit set.
+          find "$STAGE/node_modules/node-pty/prebuilds" -name spawn-helper -exec chmod 755 {} \;
+          zip -ry "termlink-$TAG.zip" "$STAGE"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "ASSET=termlink-$TAG.zip" >> "$GITHUB_ENV"
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$ASSET" --repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes
+          fi
