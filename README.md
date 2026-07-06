@@ -12,11 +12,11 @@ A terminal UI for managing your SSH and RDP connections — browse, group, searc
 
 ## Features
 
-- **Grouped connection list** with fuzzy search, foldable groups, and a live SSH reachability indicator
+- **Grouped connection list** with fuzzy search, foldable groups, manual reordering, and a live SSH reachability indicator
 - **Import from `~/.ssh/config`** — press `i` to pull in your existing hosts; connections use the config alias, so `ProxyJump`, per-host options, etc. keep working
 - **ProxyJump / arbitrary ssh flags** via a free-form "Extra SSH Args" field (e.g. `-J bastion.example.com`)
 - **SSH** via the real `ssh` binary — your existing config, agent, and host key handling all just work
-- **RDP** with no assumed client — writes a standard `.rdp` file and hands it to whatever your OS already knows how to open (`mstsc.exe` on Windows, the registered app on macOS/Linux)
+- **RDP** with no assumed client — writes a standard `.rdp` file and hands it to whatever your OS already knows how to open (the registered app on Windows/macOS/Linux)
 - **RDP passwords**, stored in your OS's native secret store (Keychain / secret-tool / Windows DPAPI) rather than in the config file
 - **Optional MCP server** (`termlink-mcp`) for letting AI agents run pre-approved commands on connections you explicitly opt in
 - **Per-connection notes**, shown alongside the other fields and editable in a small text area
@@ -56,20 +56,21 @@ termlink is a terminal UI, so it needs to run in a real terminal (Terminal.app, 
 
 Run `termlink`, then:
 
-| Key         | Action                         |
-| ----------- | ------------------------------ |
-| `↑`/`↓`     | Move selection                 |
-| `←`/`→`     | Fold/unfold a group            |
-| `enter`     | Connect to the selected host   |
-| `a`         | Add a connection               |
-| `c`         | Clone the selected connection  |
-| `e`         | Edit the selected connection   |
-| `d`         | Delete the selected connection |
-| `i`         | Import from `~/.ssh/config`    |
-| `r`         | Recheck SSH reachability       |
-| `/`         | Search                         |
-| `?`         | Help overlay                   |
-| `q` / `esc` | Quit                           |
+| Key         | Action                             |
+| ----------- | ---------------------------------- |
+| `↑`/`↓`     | Move selection                     |
+| `←`/`→`     | Fold/unfold a group                |
+| `K`/`J`     | Reorder the selected item or group |
+| `enter`     | Connect to the selected host       |
+| `a`         | Add a connection                   |
+| `c`         | Clone the selected connection      |
+| `e`         | Edit the selected connection       |
+| `d`         | Delete the selected connection     |
+| `i`         | Import from `~/.ssh/config`        |
+| `r`         | Recheck SSH reachability           |
+| `/`         | Search                             |
+| `?`         | Help overlay                       |
+| `q` / `esc` | Quit                               |
 
 While adding or editing a connection:
 
@@ -101,7 +102,7 @@ Connections are stored as JSON at `$XDG_CONFIG_HOME/termlink/connections.json` (
 
 There's no RDP client every platform ships with, so rather than depending on one specific tool, termlink writes a standard `.rdp` file at connect time and asks the OS to open it:
 
-- **Windows** — `mstsc.exe`, which is already installed.
+- **Windows** — `cmd.exe /c start`, which hands off to whatever's registered for `.rdp` files (`mstsc.exe` by default) and returns immediately, the same way the macOS/Linux openers do.
 - **macOS** — `open`, which hands off to whatever's registered for `.rdp` files (e.g. Microsoft's free "Windows App").
 - **Linux** — `xdg-open`, same idea (e.g. Remmina).
 

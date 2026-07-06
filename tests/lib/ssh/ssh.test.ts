@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSshArgs, splitArgs } from '@/lib/ssh/ssh'
+import { buildSshArgs, splitArgs, sshCommand } from '@/lib/ssh/ssh'
 import type { ConnectionModel, CredentialModel } from '@/models/connection'
 import { SSH } from '@/constants'
 
@@ -63,6 +63,17 @@ describe('buildSshArgs', () => {
 
   it('ignores empty extra args', () => {
     expect(buildSshArgs(connection({ extraArgs: '  ' }), null)).toEqual(['-p', '22', 'example.com'])
+  })
+})
+
+describe('sshCommand', () => {
+  it('uses ssh.exe on win32', () => {
+    expect(sshCommand('win32')).toBe('ssh.exe')
+  })
+
+  it('uses ssh elsewhere', () => {
+    expect(sshCommand('darwin')).toBe('ssh')
+    expect(sshCommand('linux')).toBe('ssh')
   })
 })
 

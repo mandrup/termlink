@@ -2,6 +2,7 @@ import { rm } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { buildLaunch } from '@/lib/connections/connect'
+import { sshCommand } from '@/lib/ssh/ssh'
 import type { ConnectionModel, CredentialModel } from '@/models/connection'
 import { RDP, SSH } from '@/constants'
 
@@ -21,7 +22,7 @@ describe('buildLaunch: ssh', () => {
     const credential: CredentialModel = { id: 'cred-1', username: 'alice' }
     const launch = await buildLaunch(connection({ port: 2222 }), credential, fetchPassword)
 
-    expect(launch.command).toBe(SSH)
+    expect(launch.command).toBe(sshCommand())
     expect(launch.args).toEqual(['-p', '2222', 'alice@example.com'])
     expect(fetchPassword).not.toHaveBeenCalled()
     await expect(launch.cleanup()).resolves.toBeUndefined()

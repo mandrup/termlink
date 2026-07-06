@@ -217,6 +217,33 @@ describe('resolveKeyActions: list mode', () => {
     ])
   })
 
+  it('moves the selection up or down on shift+K / shift+J', () => {
+    expect(resolveKeyActions({ ...baseCtx, mode: 'list', input: 'K', key: key() })).toEqual([
+      { type: 'moveSelection', direction: 'up' },
+    ])
+    expect(resolveKeyActions({ ...baseCtx, mode: 'list', input: 'J', key: key() })).toEqual([
+      { type: 'moveSelection', direction: 'down' },
+    ])
+  })
+
+  it('does not move the selection when nothing is selected', () => {
+    expect(
+      resolveKeyActions({ ...baseCtx, selectedRow: null, mode: 'list', input: 'K', key: key() }),
+    ).toEqual([])
+  })
+
+  it('moves a selected group row too, not just connections', () => {
+    expect(
+      resolveKeyActions({
+        ...baseCtx,
+        selectedRow: groupRow,
+        mode: 'list',
+        input: 'J',
+        key: key(),
+      }),
+    ).toEqual([{ type: 'moveSelection', direction: 'down' }])
+  })
+
   it('collapses an expanded group with the left arrow', () => {
     expect(
       resolveKeyActions({

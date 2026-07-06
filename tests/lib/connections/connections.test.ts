@@ -4,6 +4,8 @@ import {
   buildConnectionFields,
   buildMcpConfig,
   matchesQuery,
+  moveConnectionWithinGroup,
+  moveGroup,
   nextId,
   parsePort,
 } from '@/lib/connections/connections'
@@ -113,6 +115,76 @@ describe('buildMcpConfig', () => {
       enabled: true,
       allowedCommands: ['uptime', 'systemctl status *'],
     })
+  })
+})
+
+describe('moveConnectionWithinGroup', () => {
+  const connections = [
+    connection({ id: 'a', group: 'Infra' }),
+    connection({ id: 'b', group: 'Web' }),
+    connection({ id: 'c', group: 'Infra' }),
+    connection({ id: 'd', group: 'Infra' }),
+  ]
+
+  it('swaps with the previous member of the same group, ignoring other groups in between', () => {
+    const result = moveConnectionWithinGroup(connections, 'c', 'up')
+    expect(result.map((c) => c.id)).toEqual(['c', 'b', 'a', 'd'])
+  })
+
+  it('swaps with the next member of the same group', () => {
+    const result = moveConnectionWithinGroup(connections, 'c', 'down')
+    expect(result.map((c) => c.id)).toEqual(['a', 'b', 'd', 'c'])
+  })
+
+  it('is a no-op at the top of the group', () => {
+    expect(moveConnectionWithinGroup(connections, 'a', 'up')).toBe(connections)
+  })
+
+  it('is a no-op at the bottom of the group', () => {
+    expect(moveConnectionWithinGroup(connections, 'd', 'down')).toBe(connections)
+  })
+
+  it('is a no-op for an unknown id', () => {
+    expect(moveConnectionWithinGroup(connections, 'missing', 'up')).toBe(connections)
+  })
+
+  it('treats a missing group as its own "Ungrouped" group', () => {
+    const withUngrouped = [
+      connection({ id: 'a', group: undefined }),
+      connection({ id: 'b', group: undefined }),
+    ]
+    expect(moveConnectionWithinGroup(withUngrouped, 'b', 'up').map((c) => c.id)).toEqual(['b', 'a'])
+  })
+})
+
+describe('moveGroup', () => {
+  const connections = [
+    connection({ id: 'a', group: 'Infra' }),
+    connection({ id: 'b', group: 'Web' }),
+    connection({ id: 'c', group: 'Infra' }),
+    connection({ id: 'd', group: 'Db' }),
+  ]
+
+  it('moves every member of the group as a block, preserving relative order within each group', () => {
+    const result = moveGroup(connections, 'Web', 'up')
+    expect(result.map((c) => c.id)).toEqual(['b', 'a', 'c', 'd'])
+  })
+
+  it('moves a group down past the next group', () => {
+    const result = moveGroup(connections, 'Infra', 'down')
+    expect(result.map((c) => c.id)).toEqual(['b', 'a', 'c', 'd'])
+  })
+
+  it('is a no-op at the top', () => {
+    expect(moveGroup(connections, 'Infra', 'up')).toBe(connections)
+  })
+
+  it('is a no-op at the bottom', () => {
+    expect(moveGroup(connections, 'Db', 'down')).toBe(connections)
+  })
+
+  it('is a no-op for an unknown group', () => {
+    expect(moveGroup(connections, 'Missing', 'up')).toBe(connections)
   })
 })
 

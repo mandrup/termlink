@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { flattenRows } from '@/components/ConnectionList'
 import type { ConnectionFormValues } from '@/lib/connections/connectionForm'
-import { buildConnectionFields, matchesQuery, nextId } from '@/lib/connections/connections'
+import {
+  buildConnectionFields,
+  matchesQuery,
+  moveConnectionWithinGroup,
+  moveGroup,
+  nextId,
+} from '@/lib/connections/connections'
 import { deletePassword, setPassword } from '@/lib/keychain'
 import { SSH_CONFIG_DISPLAY_PATH, type SshConfigHost } from '@/lib/ssh/sshConfig'
 import type { PersistedState } from '@/lib/storage'
@@ -93,6 +99,23 @@ export function useConnectionsStore({
     }
 
     setCollapsedGroups(nextCollapsedGroups)
+  }
+
+  function moveSelected(direction: 'up' | 'down') {
+    if (isSearching || !selectedRow) return
+
+    const nextConnections =
+      selectedRow.type === 'connection' && selectedRow.connection
+        ? moveConnectionWithinGroup(connections, selectedRow.connection.id, direction)
+        : selectedRow.group
+          ? moveGroup(connections, selectedRow.group, direction)
+          : connections
+    if (nextConnections === connections) return
+
+    setConnections(nextConnections)
+    const nextRows = flattenRows(nextConnections, visibleCollapsedGroups)
+    const nextIndex = nextRows.findIndex((r) => r.key === selectedRow.key)
+    if (nextIndex >= 0) setSelectedIndex(nextIndex)
   }
 
   async function applyPassword(
@@ -278,6 +301,7 @@ export function useConnectionsStore({
     collapsedGroups,
     visibleCollapsedGroups,
     toggleGroupCollapsed,
+    moveSelected,
     statusMessage,
     setStatusMessage,
     applyFormValues,

@@ -1,10 +1,14 @@
-import { DEFAULT_PORT } from '@/constants'
+import { DEFAULT_PORT, SSH } from '@/constants'
 import type { RunResult } from '@/lib/pty'
 import type { ConnectionModel, CredentialModel } from '@/models/connection'
 
 export function splitArgs(input: string): string[] {
   const trimmed = input.trim()
   return trimmed ? trimmed.split(/\s+/) : []
+}
+
+export function sshCommand(platform: NodeJS.Platform = process.platform): string {
+  return platform === 'win32' ? 'ssh.exe' : SSH
 }
 
 export function buildSshArgs(

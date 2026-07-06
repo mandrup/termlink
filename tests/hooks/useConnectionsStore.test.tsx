@@ -263,6 +263,61 @@ function ImportHarness({
   )
 }
 
+function MoveHarness({ initialConnections }: { initialConnections: ConnectionModel[] }) {
+  const store = useConnectionsStore({
+    initialConnections,
+    initialCredentials: [],
+    saveState: vi.fn().mockResolvedValue(undefined),
+  })
+  useInput((input) => {
+    if (input === 'u') store.moveSelected('up')
+    if (input === 'n') store.moveSelected('down')
+    if (/^[0-9]$/.test(input)) store.setSelectedIndex(Number(input))
+  })
+  return (
+    <Text>
+      {store.connections.map((c) => c.name).join(',')}
+      {' | selected:'}
+      {store.selectedRow?.label ?? 'none'}
+    </Text>
+  )
+}
+
+describe('useConnectionsStore moveSelected', () => {
+  it('swaps a connection with the next one in its group and keeps it selected', async () => {
+    const { stdin, lastFrame } = render(
+      <MoveHarness
+        initialConnections={[
+          { id: 'a', name: 'Alpha', hostname: 'a.internal', protocol: SSH, group: 'Infra' },
+          { id: 'b', name: 'Beta', hostname: 'b.internal', protocol: SSH, group: 'Infra' },
+        ]}
+      />,
+    )
+    expect(lastFrame()).toContain('Alpha,Beta')
+    await press(stdin, '1')
+    expect(lastFrame()).toContain('selected:Alpha')
+    await press(stdin, 'n')
+    expect(lastFrame()).toContain('Beta,Alpha')
+    expect(lastFrame()).toContain('selected:Alpha')
+  })
+
+  it('moves a whole group above the previous group and keeps the group header selected', async () => {
+    const { stdin, lastFrame } = render(
+      <MoveHarness
+        initialConnections={[
+          { id: 'x', name: 'X', hostname: 'x.internal', protocol: SSH, group: 'Infra' },
+          { id: 'y', name: 'Y', hostname: 'y.internal', protocol: SSH, group: 'Web' },
+        ]}
+      />,
+    )
+    await press(stdin, '2')
+    expect(lastFrame()).toContain('selected:▾ Web (1)')
+    await press(stdin, 'u')
+    expect(lastFrame()).toContain('Y,X')
+    expect(lastFrame()).toContain('selected:▾ Web (1)')
+  })
+})
+
 describe('useConnectionsStore importSshHosts', () => {
   it('imports hosts as SSH connections, using the alias as hostname', async () => {
     const { stdin, lastFrame } = render(

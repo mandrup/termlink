@@ -25,7 +25,7 @@ export function buildOpenCommand(
   filePath: string,
   platform: NodeJS.Platform = process.platform,
 ): { command: string; args: string[] } {
-  if (platform === 'win32') return { command: 'mstsc.exe', args: [filePath] }
+  if (platform === 'win32') return { command: 'cmd.exe', args: ['/c', 'start', '', filePath] }
   if (platform === 'darwin') return { command: 'open', args: [filePath] }
   return { command: 'xdg-open', args: [filePath] }
 }

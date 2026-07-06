@@ -2,7 +2,7 @@ import { SSH } from '@/constants'
 import { getPassword } from '@/lib/keychain'
 import type { RunResult } from '@/lib/pty'
 import { formatResult as formatRdpResult, prepareRdpLaunch } from '@/lib/rdp/rdp'
-import { buildSshArgs, formatResult as formatSshResult } from '@/lib/ssh/ssh'
+import { buildSshArgs, formatResult as formatSshResult, sshCommand } from '@/lib/ssh/ssh'
 import type { ConnectionModel, CredentialModel } from '@/models/connection'
 
 export interface ConnectionLaunch {
@@ -19,7 +19,7 @@ export async function buildLaunch(
 ): Promise<ConnectionLaunch> {
   if (connection.protocol === SSH) {
     return {
-      command: SSH,
+      command: sshCommand(),
       args: buildSshArgs(connection, credential),
       formatResult: formatSshResult,
       cleanup: async () => {},

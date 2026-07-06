@@ -6,6 +6,7 @@ import { SSH_CONFIG_DISPLAY_PATH } from '@/lib/ssh/sshConfig'
 export const HELP_KEYS: [string, string][] = [
   ['↑/↓ or j/k', 'Move selection'],
   ['←/→', 'Fold/unfold a group'],
+  ['K/J', 'Reorder the selected item or group (shift+k/j)'],
   ['enter', 'Connect to the selected host'],
   ['a', 'Add a connection'],
   ['c', 'Clone the selected connection'],

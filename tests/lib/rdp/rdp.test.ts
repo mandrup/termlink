@@ -56,10 +56,10 @@ describe('buildRdpFileContent', () => {
 })
 
 describe('buildOpenCommand', () => {
-  it('uses mstsc.exe on win32', () => {
+  it('uses cmd.exe start on win32 so the launch returns without waiting for the session', () => {
     expect(buildOpenCommand('/tmp/x.rdp', 'win32')).toEqual({
-      command: 'mstsc.exe',
-      args: ['/tmp/x.rdp'],
+      command: 'cmd.exe',
+      args: ['/c', 'start', '', '/tmp/x.rdp'],
     })
   })
 

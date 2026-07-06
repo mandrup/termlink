@@ -17,6 +17,7 @@ export type KeyAction =
   | { type: 'endSearch'; keepQuery: boolean }
   | { type: 'refreshReachability' }
   | { type: 'toggleGroup'; group: string }
+  | { type: 'moveSelection'; direction: 'up' | 'down' }
 
 export function resolveKeyActions({
   mode,
@@ -94,6 +95,12 @@ export function resolveKeyActions({
   }
   if (input === 'r') {
     actions.push({ type: 'refreshReachability' })
+  }
+  if (input === 'K' && selectedRow) {
+    actions.push({ type: 'moveSelection', direction: 'up' })
+  }
+  if (input === 'J' && selectedRow) {
+    actions.push({ type: 'moveSelection', direction: 'down' })
   }
   if ((key.leftArrow || key.rightArrow) && selectedRow) {
     const group =

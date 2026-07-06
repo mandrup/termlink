@@ -150,6 +150,9 @@ export function App({
         case 'toggleGroup':
           store.toggleGroupCollapsed(action.group)
           break
+        case 'moveSelection':
+          store.moveSelected(action.direction)
+          break
       }
     }
   })
